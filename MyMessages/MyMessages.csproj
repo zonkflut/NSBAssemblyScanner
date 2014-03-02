@@ -39,12 +39,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\MyCommand.cs" />
-    <Compile Include="Events\MyEvent.cs" />
+    <Compile Include="Commands\MyCommand1.cs" />
+    <Compile Include="Commands\MyCommand2.cs" />
+    <Compile Include="Commands\MyCommand3.cs" />
+    <Compile Include="Commands\MyCommand4.cs" />
+    <Compile Include="Events\MyEvent1.cs" />
+    <Compile Include="Events\MyEvent2.cs" />
+    <Compile Include="Events\MyEvent3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Requests\MyRequest.cs" />
-    <Compile Include="Responses\MyResponse.cs" />
-    <Compile Include="Timeouts\MyTimeout.cs" />
+    <Compile Include="Responses\MyResponse1.cs" />
+    <Compile Include="Responses\MyResponse2.cs" />
+    <Compile Include="Responses\MyResponse3.cs" />
+    <Compile Include="Timeouts\MyTimeout1.cs" />
+    <Compile Include="Timeouts\MyTimeout2.cs" />
+    <Compile Include="Timeouts\MyTimeout3.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

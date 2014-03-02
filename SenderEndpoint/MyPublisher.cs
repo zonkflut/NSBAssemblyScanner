@@ -10,17 +10,20 @@ namespace SenderEndpoint
 
         public void ExecuteEvent()
         {
-            Bus.Publish(new MyEvent());
+            // TODO: Not yet handled
+            Bus.Publish(new MyEvent1());
         }
 
         public void ExecuteGenericEvent()
         {
-            Bus.Publish<MyEvent>(m => { });
+            // TODO: Not yet handled
+            Bus.Publish<MyEvent2>(m => { });
         }
 
         public void ExecuteEventWithOtherStatmentsBetween()
         {
-            var myEvent = new MyEvent();
+            // TODO: Not yet handled
+            var myEvent = new MyEvent3();
 
             Console.WriteLine("Doing something in between");
 

@@ -9,24 +9,25 @@ namespace HandlerEndpoint
 {
     public class MyHandler : 
         IHandleMessages<MyRequest>,
-        IHandleMessages<MyEvent>,
-        IHandleMessages<MyCommand>
+        IHandleMessages<MyEvent1>,
+        IHandleMessages<MyCommand1>
     {
         public IBus Bus { get; set; }
 
         public void Handle(MyRequest message)
         {
-            Bus.Reply<MyResponse>(r => { });
+            // TODO: Not yet handled
+            Bus.Reply<MyResponse1>(r => { });
         }
 
-        public void Handle(MyEvent message)
+        public void Handle(MyEvent1 message)
         {
-            Bus.Reply(new MyResponse());
+            Bus.Reply(new MyResponse2());
         }
 
-        public void Handle(MyCommand message)
+        public void Handle(MyCommand1 message)
         {
-            var response = new MyResponse();
+            var response = new MyResponse3();
 
             Console.WriteLine("Responding");
 

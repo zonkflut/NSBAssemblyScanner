@@ -8,27 +8,40 @@ using NServiceBus.Saga;
 namespace HandlerEndpoint
 {
     public class MySaga : Saga<MySagaData>,
-        IAmStartedByMessages<MyCommand>,
-        IHandleMessages<MyEvent>,
-        IHandleTimeouts<MyTimeout>
+        IAmStartedByMessages<MyCommand1>, // TODO: Not yet handled: appears as IHandleMessages
+        IHandleMessages<MyEvent1>,
+        IHandleTimeouts<MyTimeout1>,
+        IHandleTimeouts<MyTimeout2>,
+        IHandleTimeouts<MyTimeout3>
     {
-        public void Handle(MyCommand message)
+        public void Handle(MyCommand1 message)
         {
-            RequestTimeout<MyTimeout>(DateTime.Now.AddMinutes(1), t => { });
+            // TODO: Not yet handled
+            RequestTimeout<MyTimeout1>(DateTime.Now.AddMinutes(1), t => { });
         }
 
-        public void Handle(MyEvent message)
+        public void Handle(MyEvent1 message)
         {
-            RequestTimeout(DateTime.Now.AddMinutes(1), new MyTimeout());
+            // TODO: Not yet handled
+            RequestTimeout(DateTime.Now.AddMinutes(1), new MyTimeout2());
         }
 
-        public void Timeout(MyTimeout state)
+        public void Timeout(MyTimeout1 state)
         {
-            var myTimeout = new MyTimeout();
+            // TODO: Not yet handled
+            var myTimeout = new MyTimeout3();
 
             Console.Write("Creating Timeout");
 
             RequestTimeout(DateTime.Now.AddMinutes(1), myTimeout);
+        }
+
+        public void Timeout(MyTimeout2 state)
+        {
+        }
+
+        public void Timeout(MyTimeout3 state)
+        {
         }
     }
 
