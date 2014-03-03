@@ -7,7 +7,7 @@ namespace NSBEndpointAndMessageDetection
     {
         public static void Main(string[] args)
         {
-            var scanner = new NSBAssemblyScanner();
+            var scanner = new NsbAssemblyScanner();
 
             var results = scanner.Scan(args[0]);
                 

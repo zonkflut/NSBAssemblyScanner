@@ -8,8 +8,10 @@ using Mono.Cecil.Cil;
 
 namespace NSBEndpointAndMessageDetection
 {
-    public class NSBAssemblyScanner
+    public class NsbAssemblyScanner
     {
+        private readonly string[] IgnoredAssemblyNames = { "NServiceBus.Core", "NServiceBus" };
+
         public IList<IInstance> Scan(string assemblyDirectory)
         {
             var assemblies = LoadAllAssembliesInDirectory(assemblyDirectory);
@@ -42,7 +44,7 @@ namespace NSBEndpointAndMessageDetection
         {
             var results = new List<Handler>();
 
-            foreach (var assembly in assemblies.Where(a => !new[] { "NServiceBus.Core", "NServiceBus" }.Contains(a.GetName().Name)))
+            foreach (var assembly in assemblies.Where(a => !IgnoredAssemblyNames.Contains(a.GetName().Name)))
             {
                 try
                 {
@@ -50,13 +52,14 @@ namespace NSBEndpointAndMessageDetection
 
                     foreach (var handlerType in handlerTypes)
                     {
-                        if (!GetMessageTypes(handlerType).Any()) continue;
+                        var messageTypes = GetMessageTypes(handlerType);
+                        if (!messageTypes.Any()) continue;
 
                         results.Add(new Handler
                         {
                             AssemblyName = assembly.FullName,
                             Name = handlerType.FullName,
-                            Messages = GetMessageTypes(handlerType)
+                            Messages = messageTypes
                         });
                     }
                 }
@@ -78,7 +81,7 @@ namespace NSBEndpointAndMessageDetection
 
             var assemblyDefinitions = assemblyNames.Select(resolver.Resolve).ToList();
 
-            foreach (var assemblyDefinition in assemblyDefinitions.Where(a => !new[] { "NServiceBus.Core", "NServiceBus" }.Contains(a.Name.Name)))
+            foreach (var assemblyDefinition in assemblyDefinitions.Where(a => !IgnoredAssemblyNames.Contains(a.Name.Name)))
             {
                 try
                 {
@@ -148,6 +151,29 @@ namespace NSBEndpointAndMessageDetection
             return instruction.Previous != null && instruction.Previous.OpCode.Name != "newobj"
                 ? GetParameterType(instruction.Previous)
                 : instruction.Previous != null ? instruction.Previous.Operand as MemberReference : null;
+        }
+    }
+
+    public class NsbUsageIlRenderer
+    {
+        public string RenderUsages(string assemblyPath)
+        {
+            var assemblyFile = new FileInfo(assemblyPath);
+            var resolver = new DefaultAssemblyResolver();
+            resolver.AddSearchDirectory(assemblyFile.Directory.FullName);
+            var assemblyDefinitions = resolver.Resolve(assemblyFile.Name);
+            foreach (var typeDefinition in assemblyDefinitions.MainModule.Types)
+            {
+                var instructions = typeDefinition.Methods
+                    .Where(m => m.Body != null)
+                    .SelectMany(m => m.Body.Instructions)
+                    .Where(i => i.Operand != null)
+                    .Where(i => i.Operand.GetType() == typeof(MethodReference))
+                    .Where(m => ((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus")
+                    .ToList();
+                
+            }
+            throw new NotImplementedException();
         }
     }
 }
