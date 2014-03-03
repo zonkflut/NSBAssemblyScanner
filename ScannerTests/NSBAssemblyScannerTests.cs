@@ -29,7 +29,7 @@ namespace ScannerTests
         public void TryRender()
         {
             var renderUsages = new NsbUsageIlRenderer()
-                .RenderUsages(@"C:\Projects\NSBAssemblyScanner\SenderEndpoint\bin\Debug\SenderEndpoint.dll");
+                .RenderUsages(@"D:\Projects\NSBAssemblyScanner\SenderEndpoint\bin\Debug\SenderEndpoint.dll");
 
             Console.WriteLine(renderUsages);
         }

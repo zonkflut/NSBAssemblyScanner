@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -158,22 +159,31 @@ namespace NSBEndpointAndMessageDetection
     {
         public string RenderUsages(string assemblyPath)
         {
+            var render = new StringBuilder();
             var assemblyFile = new FileInfo(assemblyPath);
             var resolver = new DefaultAssemblyResolver();
             resolver.AddSearchDirectory(assemblyFile.Directory.FullName);
-            var assemblyDefinitions = resolver.Resolve(assemblyFile.Name);
+            var assemblyDefinitions = resolver.Resolve(assemblyFile.Name.Substring(0, assemblyFile.Name.Length - assemblyFile.Extension.Length));
             foreach (var typeDefinition in assemblyDefinitions.MainModule.Types)
             {
-                var instructions = typeDefinition.Methods
-                    .Where(m => m.Body != null)
-                    .SelectMany(m => m.Body.Instructions)
-                    .Where(i => i.Operand != null)
-                    .Where(i => i.Operand.GetType() == typeof(MethodReference))
-                    .Where(m => ((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus")
-                    .ToList();
-                
+                render.AppendFormat("Type: {0}\r\n", typeDefinition.FullName);
+                render.AppendLine("============================================");
+                foreach (var methodDefinition in typeDefinition.Methods)
+                {
+                    render.AppendFormat("Method: {0}\r\n", methodDefinition.FullName);
+                    render.AppendLine("---------------------");
+                    foreach (var instruction in methodDefinition.Body.Instructions)
+                    {
+                        render.AppendLine(string.Format("{0} {1} {2}", instruction.OpCode.Name, instruction.Operand, instruction.Offset));
+                    }
+
+                    render.AppendLine("---------------------");
+                }
+
+                render.AppendLine("===========================================");
             }
-            throw new NotImplementedException();
+
+            return render.ToString();
         }
     }
 }
