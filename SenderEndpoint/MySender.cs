@@ -46,7 +46,6 @@ namespace SenderEndpoint
 
         public void ExecuteCommandWithParameterFromMethod()
         {
-            // TODO: not yet handled
             var command = GetCommand();
             Bus.Send(command);
         }

@@ -57,6 +57,7 @@
     <Compile Include="IInstance.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="NSBAssemblyScanner.cs" />
+    <Compile Include="NsbUsageIlRenderer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sender.cs" />

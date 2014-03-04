@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -11,7 +10,7 @@ namespace NSBEndpointAndMessageDetection
 {
     public class NsbAssemblyScanner
     {
-        private readonly string[] IgnoredAssemblyNames = { "NServiceBus.Core", "NServiceBus" };
+        private readonly string[] ignoredAssemblyNames = { "NServiceBus.Core", "NServiceBus" };
 
         public IList<IInstance> Scan(string assemblyDirectory)
         {
@@ -45,7 +44,7 @@ namespace NSBEndpointAndMessageDetection
         {
             var results = new List<Handler>();
 
-            foreach (var assembly in assemblies.Where(a => !IgnoredAssemblyNames.Contains(a.GetName().Name)))
+            foreach (var assembly in assemblies.Where(a => !ignoredAssemblyNames.Contains(a.GetName().Name)))
             {
                 try
                 {
@@ -82,7 +81,7 @@ namespace NSBEndpointAndMessageDetection
 
             var assemblyDefinitions = assemblyNames.Select(resolver.Resolve).ToList();
 
-            foreach (var assemblyDefinition in assemblyDefinitions.Where(a => !IgnoredAssemblyNames.Contains(a.Name.Name)))
+            foreach (var assemblyDefinition in assemblyDefinitions.Where(a => !ignoredAssemblyNames.Contains(a.Name.Name)))
             {
                 try
                 {
@@ -182,7 +181,11 @@ namespace NSBEndpointAndMessageDetection
                         ? ((MemberReference)corrInst.Previous.Operand).DeclaringType.FullName
                         : null;
                 }
-                else 
+                else if (corrInst.Previous != null && corrInst.Previous.OpCode.Name == "call")
+                {
+                    return ((MethodReference)corrInst.Previous.Operand).ReturnType.FullName;
+                }
+                else
                     return null;
             }
 
@@ -201,38 +204,6 @@ namespace NSBEndpointAndMessageDetection
             return instruction == null || instruction.OpCode.Name == operationCodeName
                 ? instruction
                 : GetCorrespondingInstruction(instruction.Previous, operationCodeName);
-        }
-    }
-
-    public class NsbUsageIlRenderer
-    {
-        public string RenderUsages(string assemblyPath)
-        {
-            var render = new StringBuilder();
-            var assemblyFile = new FileInfo(assemblyPath);
-            var resolver = new DefaultAssemblyResolver();
-            resolver.AddSearchDirectory(assemblyFile.Directory.FullName);
-            var assemblyDefinitions = resolver.Resolve(assemblyFile.Name.Substring(0, assemblyFile.Name.Length - assemblyFile.Extension.Length));
-            foreach (var typeDefinition in assemblyDefinitions.MainModule.Types)
-            {
-                render.AppendFormat("Type: {0}\r\n", typeDefinition.FullName);
-                render.AppendLine("============================================");
-                foreach (var methodDefinition in typeDefinition.Methods)
-                {
-                    render.AppendFormat("Method: {0}\r\n", methodDefinition.FullName);
-                    render.AppendLine("---------------------");
-                    foreach (var instruction in methodDefinition.Body.Instructions)
-                    {
-                        render.AppendLine(string.Format("{0} {1} {2}", instruction.OpCode.Name, instruction.Operand, instruction.Offset));
-                    }
-
-                    render.AppendLine("---------------------");
-                }
-
-                render.AppendLine("===========================================");
-            }
-
-            return render.ToString();
         }
     }
 }
