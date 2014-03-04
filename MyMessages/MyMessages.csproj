@@ -44,6 +44,7 @@
     <Compile Include="Commands\MyCommand3.cs" />
     <Compile Include="Commands\MyCommand4.cs" />
     <Compile Include="Commands\MyCommand5.cs" />
+    <Compile Include="Commands\MyCommand6.cs" />
     <Compile Include="Events\MyEvent1.cs" />
     <Compile Include="Events\MyEvent2.cs" />
     <Compile Include="Events\MyEvent3.cs" />

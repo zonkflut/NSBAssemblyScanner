@@ -95,7 +95,8 @@ namespace NSBEndpointAndMessageDetection
                                 .SelectMany(m => m.Body.Instructions)
                                 .Where(i => i.Operand != null)
                                 .Where(i => i.Operand.GetType() == typeof(MethodReference) || i.Operand.GetType() == typeof(GenericInstanceMethod))
-                                .Where(m => ((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus")
+                                .Where(m => (((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus") || 
+                                            (((MethodReference)m.Operand).DeclaringType.FullName.StartsWith("NServiceBus.Saga.Saga") && ((MethodReference)m.Operand).GetElementMethod().Name == "RequestTimeout"))
                                 .ToList();
 
                             if (!instructions.Any()) continue;
@@ -122,9 +123,18 @@ namespace NSBEndpointAndMessageDetection
                                 }
                                 else
                                 {
+                                    string name;
+                                    if (parameter != null)
+                                    {
+                                        name = parameter.DeclaringType.FullName;
+                                    }
+                                    else
+                                    {
+                                        name = "Unknown Message Type";
+                                    }
                                     result.Messages.Add(new Message
                                     {
-                                        Name = parameter != null ? parameter.DeclaringType.FullName : "Unknown Message Type",
+                                        Name = name,
                                         Operation = ((MethodReference)instruction.Operand).Name
                                     });
                                 }

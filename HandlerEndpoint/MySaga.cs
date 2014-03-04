@@ -16,19 +16,16 @@ namespace HandlerEndpoint
     {
         public void Handle(MyCommand1 message)
         {
-            // TODO: Not yet handled
             RequestTimeout<MyTimeout1>(DateTime.Now.AddMinutes(1), t => { });
         }
 
         public void Handle(MyEvent1 message)
         {
-            // TODO: Not yet handled
             RequestTimeout(DateTime.Now.AddMinutes(1), new MyTimeout2());
         }
 
         public void Timeout(MyTimeout1 state)
         {
-            // TODO: Not yet handled
             var myTimeout = new MyTimeout3();
 
             Console.Write("Creating Timeout");

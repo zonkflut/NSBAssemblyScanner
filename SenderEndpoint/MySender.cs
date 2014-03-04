@@ -44,5 +44,17 @@ namespace SenderEndpoint
             
             return otherObject;
         }
+
+        public void ExecuteCommandWithParameterFromMethod()
+        {
+            // TODO: not yet handled
+            var command = GetCommand();
+            Bus.Send(command);
+        }
+
+        private MyCommand6 GetCommand()
+        {
+            return new MyCommand6();
+        }
     }
 }
