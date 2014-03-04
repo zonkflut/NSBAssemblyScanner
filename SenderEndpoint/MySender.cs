@@ -15,7 +15,6 @@ namespace SenderEndpoint
 
         public void ExecuteGenericCommand()
         {
-            // TODO: Not yet handled
             Bus.Send<MyCommand2>(c => { });
         }
 

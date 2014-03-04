@@ -94,8 +94,8 @@ namespace NSBEndpointAndMessageDetection
                                 .Where(m => m.Body != null)
                                 .SelectMany(m => m.Body.Instructions)
                                 .Where(i => i.Operand != null)
-                                .Where(i => i.Operand.GetType() == typeof (MethodReference))
-                                .Where(m => ((MethodReference) m.Operand).DeclaringType.FullName == "NServiceBus.IBus")
+                                .Where(i => i.Operand.GetType() == typeof(MethodReference) || i.Operand.GetType() == typeof(GenericInstanceMethod))
+                                .Where(m => ((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus")
                                 .ToList();
 
                             if (!instructions.Any()) continue;
@@ -111,11 +111,23 @@ namespace NSBEndpointAndMessageDetection
                             foreach (var instruction in instructions)
                             {
                                 var parameter = GetParameterType(instruction);
-                                result.Messages.Add(new Message
+
+                                if (instruction.Operand.GetType() == typeof(GenericInstanceMethod))
                                 {
-                                    Name = parameter != null ? parameter.DeclaringType.FullName : "Unknown Message Type",
-                                    Operation = ((MethodReference) instruction.Operand).Name
-                                });
+                                    result.Messages.Add(new Message
+                                    {
+                                        Name = ((GenericInstanceMethod)instruction.Operand).GenericArguments[0].FullName,
+                                        Operation = ((MethodReference)instruction.Operand).Name
+                                    });
+                                }
+                                else
+                                {
+                                    result.Messages.Add(new Message
+                                    {
+                                        Name = parameter != null ? parameter.DeclaringType.FullName : "Unknown Message Type",
+                                        Operation = ((MethodReference)instruction.Operand).Name
+                                    });
+                                }
                             }
                         }
                         catch (Exception e)

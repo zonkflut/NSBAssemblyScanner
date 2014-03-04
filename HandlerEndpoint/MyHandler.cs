@@ -16,7 +16,6 @@ namespace HandlerEndpoint
 
         public void Handle(MyRequest message)
         {
-            // TODO: Not yet handled
             Bus.Reply<MyResponse1>(r => { });
         }
 
