@@ -88,61 +88,51 @@ namespace NSBEndpointAndMessageDetection
                 {
                     foreach (var typeDefinition in assemblyDefinition.MainModule.Types)
                     {
-                        try
+                        var hasInstructions = typeDefinition.Methods
+                            .Where(m => m.Body != null)
+                            .SelectMany(m => m.Body.Instructions)
+                            .Where(i => i.Operand != null)
+                            .Where(i => i.Operand.GetType() == typeof(MethodReference) || i.Operand.GetType() == typeof(GenericInstanceMethod))
+                            .Where(m => (((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus") ||
+                                        (((MethodReference)m.Operand).DeclaringType.FullName.StartsWith("NServiceBus.Saga.Saga") && ((MethodReference)m.Operand).GetElementMethod().Name == "RequestTimeout"))
+                            .Any();
+
+
+                        if (!hasInstructions) continue;
+
+                        var result = new Sender
                         {
-                            var instructions = typeDefinition.Methods
-                                .Where(m => m.Body != null)
-                                .SelectMany(m => m.Body.Instructions)
-                                .Where(i => i.Operand != null)
-                                .Where(i => i.Operand.GetType() == typeof(MethodReference) || i.Operand.GetType() == typeof(GenericInstanceMethod))
-                                .Where(m => (((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus") || 
-                                            (((MethodReference)m.Operand).DeclaringType.FullName.StartsWith("NServiceBus.Saga.Saga") && ((MethodReference)m.Operand).GetElementMethod().Name == "RequestTimeout"))
-                                .ToList();
+                            AssemblyName = assemblyDefinition.FullName,
+                            Name = typeDefinition.FullName,
+                        };
 
-                            if (!instructions.Any()) continue;
+                        results.Add(result);
 
-                            var result = new Sender
+                        foreach (var methodDefinition in typeDefinition.Methods.Where(m => m.Body != null))
+                        {
+                            try
                             {
-                                AssemblyName = assemblyDefinition.FullName,
-                                Name = typeDefinition.FullName,
-                            };
+                                var instructions = methodDefinition.Body.Instructions
+                                    .Where(i => i.Operand != null)
+                                    .Where(i => i.Operand.GetType() == typeof(MethodReference) || i.Operand.GetType() == typeof(GenericInstanceMethod))
+                                    .Where(m => (((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus") || 
+                                                (((MethodReference)m.Operand).DeclaringType.FullName.StartsWith("NServiceBus.Saga.Saga") && ((MethodReference)m.Operand).GetElementMethod().Name == "RequestTimeout"))
+                                    .ToList();
 
-                            results.Add(result);
-
-                            foreach (var instruction in instructions)
-                            {
-                                var parameter = GetParameterType(instruction);
-
-                                if (instruction.Operand.GetType() == typeof(GenericInstanceMethod))
+                                foreach (var instruction in instructions)
                                 {
+                                    var parameter = GetParameterType(methodDefinition, instruction);
                                     result.Messages.Add(new Message
                                     {
-                                        Name = ((GenericInstanceMethod)instruction.Operand).GenericArguments[0].FullName,
-                                        Operation = ((MethodReference)instruction.Operand).Name
-                                    });
-                                }
-                                else
-                                {
-                                    string name;
-                                    if (parameter != null)
-                                    {
-                                        name = parameter.DeclaringType.FullName;
-                                    }
-                                    else
-                                    {
-                                        name = "Unknown Message Type";
-                                    }
-                                    result.Messages.Add(new Message
-                                    {
-                                        Name = name,
+                                        Name = parameter ?? "Unknown Message Type",
                                         Operation = ((MethodReference)instruction.Operand).Name
                                     });
                                 }
                             }
-                        }
-                        catch (Exception e)
-                        {
-                            Console.Error.WriteLine("Error Occurred during GetSenders for Type Definition: {0}\r\n{1}", typeDefinition.FullName, e);
+                            catch (Exception e)
+                            {
+                                Console.Error.WriteLine("Error Occurred during GetSenders for Type Definition: {0}\r\n{1}", typeDefinition.FullName, e);
+                            }
                         }
                     }
                 }
@@ -169,11 +159,48 @@ namespace NSBEndpointAndMessageDetection
                 .ToList();
         }
         
-        private MemberReference GetParameterType(Instruction instruction)
+        private string GetParameterType(MethodDefinition methodDefinition, Instruction instruction)
         {
-            return instruction.Previous != null && instruction.Previous.OpCode.Name != "newobj"
-                ? GetParameterType(instruction.Previous)
-                : instruction.Previous != null ? instruction.Previous.Operand as MemberReference : null;
+            if (instruction.Operand as GenericInstanceMethod != null) 
+                return (instruction.Operand as GenericInstanceMethod).GenericArguments[0].FullName;
+
+            var operationCode = instruction.Previous.OpCode.Name;
+            if (instruction.Previous != null && operationCode == "newobj")
+            {
+                return instruction.Previous != null && (instruction.Previous.Operand as MemberReference) != null
+                    ? ((MemberReference)instruction.Previous.Operand).DeclaringType.FullName
+                    : null;
+            }
+
+            if (instruction.Previous != null && operationCode.StartsWith("ldloc."))
+            {
+                var corrInst = GetCorrespondingInstruction(instruction.Previous, "stloc." + operationCode.Replace("ldloc.", string.Empty));
+
+                if (corrInst.Previous != null && corrInst.Previous.OpCode.Name == "newobj")
+                {
+                    return corrInst.Previous != null && (corrInst.Previous.Operand as MemberReference) != null
+                        ? ((MemberReference)corrInst.Previous.Operand).DeclaringType.FullName
+                        : null;
+                }
+                else 
+                    return null;
+            }
+
+            if (instruction.Previous != null && operationCode.StartsWith("ldarg."))
+            {
+                var parameterIndex = int.Parse(operationCode.Replace("ldarg.", string.Empty)) - 1;
+                var parameter = methodDefinition.Parameters[parameterIndex];
+                return parameter.ParameterType.FullName;
+            }
+
+            return null;
+        }
+
+        private Instruction GetCorrespondingInstruction(Instruction instruction, string operationCodeName)
+        {
+            return instruction == null || instruction.OpCode.Name == operationCodeName
+                ? instruction
+                : GetCorrespondingInstruction(instruction.Previous, operationCodeName);
         }
     }
 

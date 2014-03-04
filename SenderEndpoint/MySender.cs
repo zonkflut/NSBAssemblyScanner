@@ -29,7 +29,6 @@ namespace SenderEndpoint
 
         public void ExecuteWithParameter(MyCommand4 command)
         {
-            // TODO: Not yet handled
             Bus.Send(command);
         }
 
