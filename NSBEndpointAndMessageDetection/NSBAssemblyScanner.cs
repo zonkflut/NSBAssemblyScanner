@@ -48,9 +48,7 @@ namespace NSBEndpointAndMessageDetection
             {
                 try
                 {
-                    var handlerTypes = assembly.GetExportedTypes();
-
-                    foreach (var handlerType in handlerTypes)
+                    foreach (var handlerType in assembly.GetExportedTypes())
                     {
                         var messageTypes = GetMessageTypes(handlerType);
                         if (!messageTypes.Any()) continue;
