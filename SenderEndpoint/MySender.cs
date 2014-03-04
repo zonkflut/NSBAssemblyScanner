@@ -33,5 +33,17 @@ namespace SenderEndpoint
             // TODO: Not yet handled
             Bus.Send(command);
         }
+
+        public DateTime ExecuteCommandWithOtherNewedUpdStatementsBetween()
+        {
+            var myEvent = new MyCommand5();
+
+            var otherObject = new DateTime();
+            otherObject = otherObject.AddDays(10);
+
+            Bus.Send(myEvent);
+            
+            return otherObject;
+        }
     }
 }
