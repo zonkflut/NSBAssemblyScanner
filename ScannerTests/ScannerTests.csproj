@@ -59,7 +59,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IInstanceExtensions.cs" />
     <Compile Include="NSBAssemblyScannerTests.cs" />
+    <Compile Include="NsbUsageIlRendererTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

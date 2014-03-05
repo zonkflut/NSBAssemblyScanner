@@ -50,6 +50,16 @@ namespace SenderEndpoint
             Bus.Send(command);
         }
 
+        public void ExecuteCommandWithDestinationAddress()
+        {
+            Bus.Send("my address", new MyCommand7());
+        }
+
+        public void ExecuteSendLocalCommand()
+        {
+            Bus.SendLocal(new MyCommand8());
+        }
+
         private MyCommand6 GetCommand()
         {
             return new MyCommand6();
