@@ -10,8 +10,8 @@ namespace ScannerTests
     [TestFixture]
     public class NSBAssemblyScannerTests
     {
-        private const string HandlerEndpointAssemblyDirectory = @"D:\Projects\NSBAssemblyScanner\HandlerEndpoint\bin\Debug";
-        private const string SenderEndpointAssemblyDirectory = @"D:\Projects\NSBAssemblyScanner\SenderEndpoint\bin\Debug";
+        private const string HandlerEndpointAssemblyDirectory = @"C:\Projects\NSBAssemblyScanner\HandlerEndpoint\bin\Debug";
+        private const string SenderEndpointAssemblyDirectory = @"C:\Projects\NSBAssemblyScanner\SenderEndpoint\bin\Debug";
 
         [Test]
         public void RenderAllResults()
@@ -77,7 +77,7 @@ namespace ScannerTests
         public void MySender_ExecuteSendLocalCommand()
         {
             var results = new NsbAssemblyScanner().Scan(SenderEndpointAssemblyDirectory);
-            Assert.IsTrue(results.GetMessages("SenderEndpoint", "SenderEndpoint.MySender", "MyMessages.Commands.MyCommand8", "Send").Any());
+            Assert.IsTrue(results.GetMessages("SenderEndpoint", "SenderEndpoint.MySender", "MyMessages.Commands.MyCommand8", "SendLocal").Any());
         }
 
         [Test]

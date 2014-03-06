@@ -36,6 +36,7 @@ namespace NSBEndpointAndMessageDetection
                 {
                     assemblies.Add(Assembly.LoadFrom(file));
                 }
+                // ReSharper disable once EmptyGeneralCatchClause
                 catch { /*noop*/ }
             }
 
