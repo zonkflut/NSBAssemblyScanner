@@ -8,7 +8,12 @@ using Mono.Cecil.Cil;
 
 namespace NSBEndpointAndMessageDetection
 {
-    public class NsbAssemblyScanner
+    public interface INsbAssemblyScanner
+    {
+        IList<IInstance> Scan(string assemblyDirectory);
+    }
+
+    public class NsbAssemblyScanner : INsbAssemblyScanner
     {
         private readonly string[] ignoredAssemblyNames = { "NServiceBus.Core", "NServiceBus" };
 
@@ -31,16 +36,13 @@ namespace NSBEndpointAndMessageDetection
                 {
                     assemblies.Add(Assembly.LoadFrom(file));
                 }
-                catch (Exception e)
-                {
-                    Console.Error.WriteLine("Could not load Assembly: {0}\r\n{1}", file, e);
-                }
+                catch { /*noop*/ }
             }
 
             return assemblies;
         }
 
-        private List<Handler> GetHandlers(IList<Assembly> assemblies)
+        private IEnumerable<Handler> GetHandlers(IEnumerable<Assembly> assemblies)
         {
             var results = new List<Handler>();
 
@@ -70,13 +72,11 @@ namespace NSBEndpointAndMessageDetection
             return results;
         }
 
-        private IList<Sender> GetSenders(string assemblyDirectory, IList<string> assemblyNames)
+        private IEnumerable<Sender> GetSenders(string assemblyDirectory, IEnumerable<string> assemblyNames)
         {
             var results = new List<Sender>();
-
             var resolver = new DefaultAssemblyResolver();
             resolver.AddSearchDirectory(assemblyDirectory);
-
             var assemblyDefinitions = assemblyNames.Select(resolver.Resolve).ToList();
 
             foreach (var assemblyDefinition in assemblyDefinitions.Where(a => !ignoredAssemblyNames.Contains(a.Name.Name)))
@@ -92,7 +92,6 @@ namespace NSBEndpointAndMessageDetection
                             .Where(i => i.Operand is GenericInstanceMethod || i.Operand is MethodReference)
                             .Any(m => (((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus") ||
                                       (((MethodReference)m.Operand).DeclaringType.FullName.StartsWith("NServiceBus.Saga.Saga") && ((MethodReference)m.Operand).GetElementMethod().Name == "RequestTimeout"));
-
 
                         if (!hasInstructions) continue;
 
@@ -181,7 +180,9 @@ namespace NSBEndpointAndMessageDetection
 
                 if (corrInst.Previous != null && corrInst.Previous.OpCode.Name == "call")
                 {
-                    return ((MethodReference)corrInst.Previous.Operand).ReturnType.FullName;
+                    return corrInst.Previous != null && (corrInst.Previous.Operand as MethodReference) != null
+                        ? ((MethodReference)corrInst.Previous.Operand).ReturnType.FullName
+                        : null;
                 }
 
                 return null;
