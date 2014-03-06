@@ -31,9 +31,9 @@ namespace NSBEndpointAndMessageDetection
                 {
                     assemblies.Add(Assembly.LoadFrom(file));
                 }
-                catch
+                catch (Exception e)
                 {
-                    // NOOP 
+                    Console.Error.WriteLine("Could not load Assembly: {0}\r\n{1}", file, e);
                 }
             }
 
@@ -178,12 +178,13 @@ namespace NSBEndpointAndMessageDetection
                         ? ((MemberReference)corrInst.Previous.Operand).DeclaringType.FullName
                         : null;
                 }
-                else if (corrInst.Previous != null && corrInst.Previous.OpCode.Name == "call")
+
+                if (corrInst.Previous != null && corrInst.Previous.OpCode.Name == "call")
                 {
                     return ((MethodReference)corrInst.Previous.Operand).ReturnType.FullName;
                 }
-                else
-                    return null;
+
+                return null;
             }
 
             if (instruction.Previous != null && operationCode.StartsWith("ldarg."))
