@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 
 namespace NSBEndpointAndMessageDetection
@@ -7,20 +8,17 @@ namespace NSBEndpointAndMessageDetection
     {
         public static void Main(string[] args)
         {
-            var scanner = new NsbAssemblyScanner();
-
-            var results = scanner.Scan(args[0]);
-                
-            if (results.Any())
+            try
             {
-                foreach (var result in results)
-                {
-                    Console.WriteLine(result);
-                }
+                var results = new NsbAssemblyScanner().Scan(args[0]);
+                if (results.Any())
+                    new GraphDbRenderer().RenderClient(results, "http://localhost:7474/db/data");
+                else
+                    Console.WriteLine("No NServiceBus Directives found");
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("No NServiceBus Directives found");
+                Console.Error.WriteLine("Error Occurred. Ending Scanner.\r\n{0}", e);
             }
         }
     }
