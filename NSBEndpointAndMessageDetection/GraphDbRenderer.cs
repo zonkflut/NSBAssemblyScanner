@@ -10,7 +10,15 @@ namespace NSBEndpointAndMessageDetection
         {
             var client = new GraphClient(new Uri(neo4JUrl));
             client.Connect();
-                
+            //var query = client
+            //    .Cypher
+            //    .Start(new { root = client.RootNode })
+            //    .Match("root-[:HAS_BOOK]->book")
+            //    .Where((Book bk) => bk.Pages > 5)
+            //    .Return(book => book.As<Book>());
+    
+            //client.Cypher
+            //    .CreateUnique()
         }
     }
 }
