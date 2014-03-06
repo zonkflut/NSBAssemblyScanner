@@ -89,10 +89,9 @@ namespace NSBEndpointAndMessageDetection
                             .Where(m => m.Body != null)
                             .SelectMany(m => m.Body.Instructions)
                             .Where(i => i.Operand != null)
-                            .Where(i => i.Operand.GetType() == typeof(MethodReference) || i.Operand.GetType() == typeof(GenericInstanceMethod))
-                            .Where(m => (((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus") ||
-                                        (((MethodReference)m.Operand).DeclaringType.FullName.StartsWith("NServiceBus.Saga.Saga") && ((MethodReference)m.Operand).GetElementMethod().Name == "RequestTimeout"))
-                            .Any();
+                            .Where(i => i.Operand is GenericInstanceMethod || i.Operand is MethodReference)
+                            .Any(m => (((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus") ||
+                                      (((MethodReference)m.Operand).DeclaringType.FullName.StartsWith("NServiceBus.Saga.Saga") && ((MethodReference)m.Operand).GetElementMethod().Name == "RequestTimeout"));
 
 
                         if (!hasInstructions) continue;
@@ -111,7 +110,7 @@ namespace NSBEndpointAndMessageDetection
                             {
                                 var instructions = methodDefinition.Body.Instructions
                                     .Where(i => i.Operand != null)
-                                    .Where(i => i.Operand.GetType() == typeof(MethodReference) || i.Operand.GetType() == typeof(GenericInstanceMethod))
+                                    .Where(i => i.Operand is GenericInstanceMethod || i.Operand is MethodReference)
                                     .Where(m => (((MethodReference)m.Operand).DeclaringType.FullName == "NServiceBus.IBus") || 
                                                 (((MethodReference)m.Operand).DeclaringType.FullName.StartsWith("NServiceBus.Saga.Saga") && ((MethodReference)m.Operand).GetElementMethod().Name == "RequestTimeout"))
                                     .ToList();
@@ -145,7 +144,7 @@ namespace NSBEndpointAndMessageDetection
         private IList<Message> GetMessageTypes(Type handlerType)
         {
             return handlerType.GetInterfaces()
-                .Where(i => i.FullName.StartsWith("NServiceBus.IAmStartedByMessages") || 
+                .Where(i => i.FullName.StartsWith("NServiceBus.Saga.IAmStartedByMessages") || 
                             i.FullName.StartsWith("NServiceBus.IHandleMessages") || 
                             i.FullName.StartsWith("NServiceBus.Saga.IHandleTimeouts"))
                 .Select(handlingInterface => new Message
